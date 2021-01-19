@@ -1,0 +1,13 @@
+# .bashrc
+
+export FLASK_APP=/home/vagrant/spammish/spammish/app.py
+export FLASK_CONFIG=/home/vagrant/spammish.cfg
+export PATH=$PATH:/home/vagrant/.local/bin
+
+alias spammish-start="sudo systemctl start spammish.service && echo 'Spammish Accounts is running on http://spammish.test:5000'"
+alias spammish-unit-tests="poetry run pytest -vv --cov spammish/ --cov-report term-missing"
+alias spammish-logs="sudo journalctl -u spammish.service"
+alias spammish-restart="sudo systemctl restart spammish.service && echo 'Spammish Accounts is running on http://spammish.test:5000'"
+alias spammish-stop="sudo systemctl stop spammish.service && echo 'Spammish Accounts service stopped'"
+
+cd "spammish"

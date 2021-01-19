@@ -1,0 +1,13 @@
+---
+- name: Install RPM packages
+  dnf:
+      name:
+        - ipa-client
+      state: present
+
+- name: Uninstall any old clients
+  shell: ipa-client-install --uninstall --unattended
+  ignore_errors: yes
+
+- name: Enroll system as IPA client
+  shell: "ipa-client-install --hostname {{ ansible_fqdn }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --server {{ ipa_server }} -p admin -w {{ ipa_password }} -U -N --force-join"

@@ -1,0 +1,59 @@
+---
+- name: Install RPM packages
+  dnf:
+      name:
+        - git
+        - vim
+        - poetry
+        - python3-flask
+        - python3-pip
+        - tox
+        - fedora-messaging
+        - "@Development Tools"
+        - vim
+        - tmux
+        - libffi-devel
+      state: present
+
+- name: install python deps with poetry
+  shell: poetry install
+  become: yes
+  become_user: vagrant
+  args:
+    chdir: /home/vagrant/spammish/
+
+- name: Install the .bashrc
+  copy:
+      src: bashrc
+      dest: /home/vagrant/.bashrc
+      mode: 0644
+      owner: vagrant
+      group: vagrant
+
+- name: Install the configuration file
+  copy:
+      src: /home/vagrant/spammish/spammish.cfg.default
+      dest: /home/vagrant/spammish.cfg
+      remote_src: yes
+      owner: vagrant
+      group: vagrant
+
+- name: compile the translations
+  shell:
+    cmd: poetry run pybabel compile -d /home/vagrant/spammish/spammish/translations
+    removes: /home/vagrant/spammish/spammish/translations/messages.pot
+  become: yes
+  become_user: vagrant
+
+- name: Install the systemd unit files for the service
+  copy:
+      src: spammish.service
+      dest: /etc/systemd/system/spammish.service
+      mode: 0644
+
+- name: Start the service using systemd
+  systemd:
+    state: started
+    name: spammish
+    daemon_reload: yes
+    enabled: yes

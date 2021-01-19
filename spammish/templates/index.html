@@ -1,0 +1,23 @@
+
+{% extends "main.html" %}
+
+{% block content %}
+    {{ super() }}
+
+    <div class="bg-light border-bottom py-5">
+        <div class="container section">
+            <div class="row">
+                <div class="col">
+                    <p>Welcome to Spammish Accounts</p>
+                    <p>You are logged in as {{ g.username }}</p>
+                    <h3>Stage users</h3>
+                    <ul>
+                    {% for user in stage_users %}
+                    <li>{{ user.cn }}: {{ user.fasstatusnote }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

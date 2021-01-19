@@ -1,0 +1,41 @@
+---
+- name: Install RPM packages
+  dnf:
+    name:
+      - git
+      - vim
+      - freeipa-server
+    state: present
+
+# Vagrant adds '127.0.0.1 ipa.example.test ipa' as the first line in /etc/hosts
+# and freeipa doesnt like that, so we remove it
+- name: remove alias to 127.0.0.1
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^127.0.0.1\\s+{{ansible_fqdn}}\\s+{{ansible_hostname}}$"
+    state: absent
+
+- name: install freeipa server
+  shell: "ipa-server-install -a {{ipa_password}} --hostname={{ansible_fqdn}} -r {{ipa_realm}} -p {{ipa_password}} -n {{ipa_domain}} -U"
+  args:
+    creates: /var/lib/ipa/sysrestore/sysrestore.state
+
+- name: get freeipa-fas
+  git:
+    repo: https://github.com/fedora-infra/freeipa-fas.git
+    dest: /home/vagrant/freeipa-fas
+
+- name: install freeipa-fas
+  shell: ./install.sh
+  args:
+    chdir: /home/vagrant/freeipa-fas/
+    creates: /usr/share/ipa/updates/89-fas.update
+
+- name: create backup of clean FreeIPA server data
+  shell: ipa-backup
+
+# ipa-backup creates the backup with a datetime in the dirname. here
+# we just copy it to noggin-clean so we can reference it easier in the
+# bash alias.
+- name: copy clean backup
+  shell: mv /var/lib/ipa/backup/ipa-full* /var/lib/ipa/backup/initial-state
