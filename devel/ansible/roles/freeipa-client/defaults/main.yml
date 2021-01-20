@@ -1,4 +1,0 @@
-ipa_domain: "{{ ansible_domain }}"
-ipa_realm: "{{ domain | upper }}"
-ipa_server: "ipa.{{ ipa_domain }}"
-ipa_password: "adminPassw0rd!"

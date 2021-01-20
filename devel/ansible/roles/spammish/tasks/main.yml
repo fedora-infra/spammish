@@ -13,6 +13,7 @@
         - vim
         - tmux
         - libffi-devel
+        - krb5-devel
       state: present
 
 - name: install python deps with poetry

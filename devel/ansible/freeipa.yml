@@ -4,5 +4,5 @@
   become_method: sudo
   roles:
     - role: freeipa
-      domain: spammish.test
+      domain: ipa.spammish.test
 
