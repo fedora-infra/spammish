@@ -1,0 +1,5 @@
+ipa_domain: "{{ ansible_domain }}"
+ipa_realm: "{{ ipa_domain | upper }}"
+ipa_server: "ipa.{{ ipa_domain }}"
+ipa_password: "adminPassw0rd!"
+app_dir: "/home/vagrant/{{ app_name }}"

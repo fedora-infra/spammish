@@ -1,0 +1,143 @@
+---
+- name: Install RPM packages
+  dnf:
+    name:
+      - ipa-client
+      - httpd
+      - mod_auth_gssapi
+      - mod_session
+      - python3-mod_wsgi
+      - python3-gssapi
+      - "@Development Tools"
+      - python3-pip
+      - python3-wheel
+      - python3-devel
+      - krb5-devel
+      - libffi-devel
+    state: present
+
+- name: Allow apache to see /srv
+  sefcontext:
+    target: "/srv(/.*)?"
+    setype: httpd_sys_content_t
+
+- name: Allow apache to exec binary Python modules
+  sefcontext:
+    target: '/srv/venv/lib(64)?/.*\.so[0-9.]*'
+    setype: httpd_sys_script_exec_t
+
+- name: Create a directory for the virtualenv where Apache can see it
+  file:
+    name: /srv/venv
+    state: directory
+    mode: 0755
+    owner: vagrant
+    group: vagrant
+
+- name: Create the virtualenv and install poetry
+  pip:
+    name: poetry
+    virtualenv: /srv/venv
+    virtualenv_command: python -m venv
+  become: yes
+  become_user: vagrant
+
+- name: Tell poetry not to create a virtualenv
+  shell: /srv/venv/bin/poetry config virtualenvs.create false
+  become: yes
+  become_user: vagrant
+  args:
+    chdir: "{{ app_dir }}"
+
+- name: Restore SELinux contexts
+  command: restorecon -irv /srv/
+
+- name: Allow access to the vagrant user's home
+  file:
+    path: /home/vagrant
+    mode: 0755
+
+- name: Enroll system as IPA client
+  shell:
+    cmd: "ipa-client-install --hostname {{ ansible_fqdn }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --server {{ ipa_server }} -p admin -w {{ ipa_password }} -U -N --force-join"
+    creates: /etc/ipa/default.conf
+
+- name: Copy the service setup script
+  copy:
+    src: setup-service.sh
+    dest: /srv/setup-service.sh
+    mode: 0755
+
+- name: kinit
+  shell: echo "{{ ipa_password }}" | kinit admin@{{ ipa_realm }}
+
+- name: Create the service in IPA
+  command: bash /srv/setup-service.sh {{ ansible_fqdn }} {{ app_name }} {{ ipa_server }} {{ ipa_realm }}
+
+- name: Get service keytab for HTTPd
+  shell: ipa-getkeytab -p HTTP/{{ ansible_fqdn }} -k /var/lib/gssproxy/httpd.keytab
+  args:
+    creates: /var/lib/gssproxy/httpd.keytab
+
+- name: Set the correct permissions on keytab
+  file:
+    path: /var/lib/gssproxy/httpd.keytab
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Copy gssproxy conf
+  template:
+    src: gssproxy.conf
+    dest: /etc/gssproxy/80-httpd.conf
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Enable and restart GSSProxy
+  systemd:
+    state: restarted
+    name: gssproxy
+    enabled: yes
+    daemon_reload: yes
+
+- name: Configure temporary files
+  template:
+    src: tmpfiles.conf
+    dest: /etc/tmpfiles.d/httpd-gssapi.conf
+
+- name: Create temporary file
+  shell: systemd-tmpfiles --create
+
+- name: Tune SELinux Policy
+  seboolean:
+    name: "{{ item }}"
+    state: yes
+    persistent: yes
+  with_items:
+    - httpd_can_connect_ldap
+    - httpd_can_network_connect
+    - httpd_use_fusefs
+
+- name: Create Apache service
+  file:
+    path: /etc/systemd/system/httpd.service.d
+    state: directory
+    mode: 0755
+
+- name: Copy configs for Apache
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - src: "systemd-httpd-service.conf"
+      dest: "/etc/systemd/system/httpd.service.d/gssapi.conf"
+    - src: "httpd.conf"
+      dest: "/etc/httpd/conf.d/{{ app_name }}.conf"
+
+- name: Enable and restart Apache
+  systemd:
+    state: restarted
+    name: httpd
+    enabled: yes
+    daemon_reload: yes

@@ -17,11 +17,14 @@
       state: present
 
 - name: install python deps with poetry
-  shell: poetry install
+  shell: /srv/venv/bin/poetry install
   become: yes
   become_user: vagrant
   args:
     chdir: /home/vagrant/spammish/
+
+- name: Restore SELinux contexts
+  command: restorecon -irv /srv/
 
 - name: Install the .bashrc
   copy:
@@ -39,22 +42,13 @@
       owner: vagrant
       group: vagrant
 
-- name: compile the translations
-  shell:
-    cmd: poetry run pybabel compile -d /home/vagrant/spammish/spammish/translations
-    removes: /home/vagrant/spammish/spammish/translations/messages.pot
-  become: yes
-  become_user: vagrant
+- name: Install the WSGI script
+  file:
+    state: link
+    src: /home/vagrant/spammish/deploy/spammish.wsgi
+    path: /srv/spammish.wsgi
 
-- name: Install the systemd unit files for the service
-  copy:
-      src: spammish.service
-      dest: /etc/systemd/system/spammish.service
-      mode: 0644
-
-- name: Start the service using systemd
+- name: Restart Apache
   systemd:
-    state: started
-    name: spammish
-    daemon_reload: yes
-    enabled: yes
+    state: restarted
+    name: httpd
