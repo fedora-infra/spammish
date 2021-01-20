@@ -9,7 +9,7 @@ Environment=FLASK_CONFIG=/home/vagrant/spammish.cfg
 Environment=FLASK_DEBUG=1
 User=vagrant
 WorkingDirectory=/home/vagrant/spammish
-ExecStart=poetry run flask run -h 0.0.0.0
+ExecStart=poetry run flask run -h 0.0.0.0 --without-threads
 
 [Install]
 WantedBy=multi-user.target

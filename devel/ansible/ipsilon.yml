@@ -1,8 +1,0 @@
----
-- hosts: ipsilon
-  become: true
-  become_method: sudo
-  roles:
-    - role: ipsilon
-      domain: spammish.test
-
