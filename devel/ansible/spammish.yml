@@ -1,8 +1,8 @@
 ---
-- hosts: all
+- hosts: spammish
   become: true
   become_method: sudo
   roles:
-    - name: apache
+    - role: apache
       app_name: spammish
-    - spammish
+    - role: spammish

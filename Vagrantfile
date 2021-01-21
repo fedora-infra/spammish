@@ -9,8 +9,8 @@ Vagrant.configure(2) do |config|
 
 
   config.vm.define "freeipa" do |freeipa|
-    config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-32-1.6.x86_64.vagrant-libvirt.box"
-    config.vm.box = "f32-cloud-libvirt"
+    freeipa.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-32-1.6.x86_64.vagrant-libvirt.box"
+    freeipa.vm.box = "f32-cloud-libvirt"
     freeipa.vm.hostname = "ipa.spammish.test"
     freeipa.hostmanager.aliases = ("kerberos.example.test")
 
@@ -28,19 +28,19 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  config.vm.define "spammish" do |fasjson|
-    config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-32-1.6.x86_64.vagrant-libvirt.box"
-    config.vm.box = "f32-cloud-libvirt"
-    config.vm.hostname = "spammish.spammish.test"
+  config.vm.define "spammish" do |spammish|
+    spammish.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-32-1.6.x86_64.vagrant-libvirt.box"
+    spammish.vm.box = "f32-cloud-libvirt"
+    spammish.vm.hostname = "spammish.spammish.test"
 
-    config.vm.synced_folder ".", "/home/vagrant/spammish", type: "sshfs"
+    spammish.vm.synced_folder ".", "/home/vagrant/spammish", type: "sshfs"
 
-    config.vm.provider :libvirt do |libvirt|
+    spammish.vm.provider :libvirt do |libvirt|
       libvirt.cpus = 2
       libvirt.memory = 2048
     end
 
-    config.vm.provision "ansible" do |ansible|
+    spammish.vm.provision "ansible" do |ansible|
       ansible.playbook = "devel/ansible/spammish.yml"
       ansible.verbose = true
     end
