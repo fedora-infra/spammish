@@ -2,7 +2,6 @@
 - name: Install RPM packages
   dnf:
     name:
-      - ipa-client
       - httpd
       - mod_auth_gssapi
       - mod_session
@@ -56,11 +55,6 @@
   file:
     path: /home/vagrant
     mode: 0755
-
-- name: Enroll system as IPA client
-  shell:
-    cmd: "ipa-client-install --hostname {{ ansible_fqdn }} --domain {{ ipa_domain }} --realm {{ ipa_realm }} --server {{ ipa_server }} -p admin -w {{ ipa_password }} -U -N --force-join"
-    creates: /etc/ipa/default.conf
 
 - name: Copy the service setup script
   copy:
@@ -118,6 +112,8 @@
     - httpd_can_connect_ldap
     - httpd_can_network_connect
     - httpd_use_fusefs
+    - httpd_enable_homedirs
+    - httpd_read_user_content
 
 - name: Create Apache service
   file:

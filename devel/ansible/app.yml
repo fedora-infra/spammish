@@ -1,8 +1,9 @@
 ---
-- hosts: spammish
+- hosts: app
   become: true
   become_method: sudo
   roles:
+    - role: freeipa-client
     - role: apache
       app_name: spammish
     - role: spammish

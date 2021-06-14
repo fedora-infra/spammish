@@ -1,20 +1,19 @@
 ---
 - name: Install RPM packages
   dnf:
-      name:
-        - git
-        - vim
-        - poetry
-        - python3-flask
-        - python3-pip
-        - tox
-        - fedora-messaging
-        - "@Development Tools"
-        - vim
-        - tmux
-        - libffi-devel
-        - krb5-devel
-      state: present
+    name:
+      - git
+      - vim
+      - poetry
+      - python3-flask
+      - python3-pip
+      - tox
+      - fedora-messaging
+      - "@Development Tools"
+      - tmux
+      - libffi-devel
+      - krb5-devel
+    state: present
 
 - name: install python deps with poetry
   shell: /srv/venv/bin/poetry install
@@ -28,19 +27,18 @@
 
 - name: Install the .bashrc
   copy:
-      src: bashrc
-      dest: /home/vagrant/.bashrc
-      mode: 0644
-      owner: vagrant
-      group: vagrant
+    src: bashrc
+    dest: /home/vagrant/.bashrc
+    mode: 0644
+    owner: vagrant
+    group: vagrant
 
 - name: Install the configuration file
   copy:
-      src: /home/vagrant/spammish/spammish.cfg.default
-      dest: /home/vagrant/spammish.cfg
-      remote_src: yes
-      owner: vagrant
-      group: vagrant
+    src: spammish.cfg
+    dest: /home/vagrant/spammish.cfg
+    owner: vagrant
+    group: vagrant
 
 - name: Install the WSGI script
   file:

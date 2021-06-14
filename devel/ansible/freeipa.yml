@@ -5,4 +5,3 @@
   roles:
     - role: freeipa
       domain: ipa.spammish.test
-
